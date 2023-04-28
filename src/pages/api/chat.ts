@@ -24,15 +24,14 @@ export default async function handler(
             max_tokens: 2048,
             n: 1,
             stop: '\n',
-         });
+        });
         const chatGPTMessage = chatGPTResponse.data.choices[0].message
 
         console.log(chatGPTMessage)
 
         res.status(200).json({ message: chatGPTMessage })
     } catch (error) {
-        console.error(error.response.status); 
-        console.error(error.response.data);
+        console.error(error);
         res.status(500).json({ error: 'Something went wrong' });
     }
 }
