@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Inter } from 'next/font/google'
-import { initialMessage } from './initialMessage'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -68,57 +67,38 @@ const Input: React.FC<{ onSubmit: (userMessage: ChatMessage) => void; role: stri
 };
 
 export default function Home() {
-  const [chat, setChat] = useState<ChatMessage[]>([]);
-
-  const sendMessage = async (message: ChatMessage) => {
-    let chatHistory = [...chat, message]
-
-    const res = await fetch("/api/mockchat", {
+  const [chat, setChat] = useState<ChatMessage[]>([{
+    role: 'assistant', 
+    content: 'Hello and welcome to Pizza GPT. What can I get for you?'
+  }]);
+  const sendChat = async (messages: ChatMessage[]) => {
+    const res = await fetch("/api/chat", {
       method: "POST",
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        chatHistory
+        messages: messages
       })
     })
-
-    const gptResponse = await res.json()
-    const gptMessage: ChatMessage = {
-      content: gptResponse.response,
-      role: "assistant",
-    }
-
-    return gptMessage;
+    const responseObject = await res.json()
+    const responseMessage = responseObject.message as ChatMessage
+    return responseMessage
   }
-
-  useEffect(() => {
-    const sendInitialMessage = async () => {
-      const gptGreeting = await sendMessage(initialMessage);
-      setChat((prevChat) => [...prevChat, gptGreeting]);
-    };
-
-    sendInitialMessage();
-  }, []); // The empty array dependency makes sure this runs only on the initial render
-
 
   const handleNewMessage = async (userMessage: ChatMessage) => {
     // Update the chat state with the user message
     setChat((prevChat) => [...prevChat, userMessage]);
-
     // Call sendMessage with the user message and wait for the GPT response
-    const gptMessage = await sendMessage(userMessage);
-
-    // Update the chat state with the GPT response
-    setChat((prevChat) => [...prevChat, gptMessage]);
-  };
+    const gptResponse = await sendChat([...chat, userMessage]);
+    setChat((prevChat) => [...prevChat, gptResponse]);
+  }
 
   return (
     <main className={`flex flex-col items-center justify-center w-full min-h-screen bg-gray-100 text-gray-800 p-10 ${inter.className}`}>
       <div className="flex flex-col flex-grow w-full max-w-xl bg-white shadow-xl rounded-lg overflow-hidden">
         <Chat>
           {chat
-            .slice(1) // skip the initial system message
             .map((msg, index) =>
               msg.role === "assistant" ? (
                 <GPTMessage key={index + 1} content={msg.content} role={msg.role} />
