@@ -55,24 +55,29 @@ const Input: React.FC<{ onSubmit: (userMessage: ChatMessage) => void; role: stri
 
   return (
     <form className="bg-gray-300 p-4" onSubmit={handleSubmit}>
-      <input
-        className="flex items-center h-10 w-full rounded px-3 text-black text-sm"
-        type="text"
-        placeholder="Type your message…"
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-      />
+      <div className="flex items-center w-full">
+        <input
+          className="flex-grow h-10 rounded-l px-3 text-black text-sm"
+          type="text"
+          placeholder="Type your message…"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+        />
+        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-r">
+          Send
+        </button>
+      </div>
     </form>
   );
 };
 
 export default function Home() {
   const [chat, setChat] = useState<ChatMessage[]>([{
-    role: 'assistant', 
+    role: 'assistant',
     content: 'Hello and welcome to Pizza GPT. What can I get for you?'
   }]);
   const sendChat = async (messages: ChatMessage[]) => {
-    const res = await fetch("/api/chat", {
+    const res = await fetch("/api/mockchat", {
       method: "POST",
       headers: {
         'Content-Type': 'application/json'
@@ -82,7 +87,7 @@ export default function Home() {
       })
     })
     const responseObject = await res.json()
-    const responseMessage = responseObject.message as ChatMessage
+    const responseMessage = { content: responseObject.message, role: "assistant" };
     return responseMessage
   }
 
@@ -95,7 +100,7 @@ export default function Home() {
   }
 
   return (
-    <main className={`flex flex-col items-center justify-center w-full min-h-screen bg-gray-100 text-gray-800 p-10 ${inter.className}`}>
+    <main className={`flex flex-col items-center justify-center w-full min-h-screen bg-gray-100 text-gray-800 p-0 md:p-8 ${inter.className}`}>
       <div className="flex flex-col flex-grow w-full max-w-xl bg-white shadow-xl rounded-lg overflow-hidden">
         <Chat>
           {chat

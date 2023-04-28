@@ -1,27 +1,18 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { ChatMessage } from '..';
 
-type Data = {
-  response: string;
-};
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     try {
-      const chat: ChatMessage[] = req.body.chatHistory;
+      const chat: ChatMessage[] = req.body.messages;
 
       // Process the chat messages and generate a GPT response
-      let gptResponse = 'gptResponse was undefined';
       const lastMessage: ChatMessage | undefined = chat.slice(-1).pop()
-      if (lastMessage?.role == "system") {
-        gptResponse = 'This is a sample response from GPT.';
-      } else {
-        gptResponse = `GPT answer. Last msg: ${lastMessage?.content}`;
-      }
+      const gptResponse = `GPT answer. Last msg: ${lastMessage?.content}`;
 
-      res.status(200).json({ response: gptResponse });
+      res.status(200).json({ message: gptResponse });
     } catch (error) {
-      res.status(500).json({ response: 'Error processing request.' });
+      res.status(500).json({ message: 'Error processing request.' });
     }
   } else {
     res.setHeader('Allow', 'POST');
