@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Inter } from 'next/font/google'
-import { ChatCompletionRequestMessage, ChatCompletionRequestMessageRoleEnum } from 'openai'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -70,7 +69,7 @@ const Input: React.FC<{ onSubmit: (userMessage: ChatMessage) => void; role: stri
 export default function Home() {
   const [chat, setChat] = useState<ChatMessage[]>([{
     role: 'assistant', 
-    content: 'hello and welcome to pizza restaurant. What can i get for you?'
+    content: 'Hello and welcome to Pizza GPT. What can I get for you?'
   }]);
   const sendChat = async (messages: ChatMessage[]) => {
     const res = await fetch("/api/chat", {
@@ -83,11 +82,9 @@ export default function Home() {
       })
     })
     const responseObject = await res.json()
-    console.log(responseObject)
-    const responseMessage = responseObject.message as ChatCompletionRequestMessage
+    const responseMessage = responseObject.message as ChatMessage
     return responseMessage
   }
-}
 
   const handleNewMessage = async (userMessage: ChatMessage) => {
     // Update the chat state with the user message
