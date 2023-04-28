@@ -1,7 +1,37 @@
 import Image from 'next/image'
 import { Inter } from 'next/font/google'
+import { initialMessage } from './initialMessage'
+import { ChatCompletionRequestMessage, ChatCompletionRequestMessageRoleEnum } from 'openai'
 
 const inter = Inter({ subsets: ['latin'] })
+
+let messages = [initialMessage]
+
+const sendChat = async (message: string) => {
+  const newMessageObject: ChatCompletionRequestMessage = {
+    role: "user", 
+    content: message
+  }
+  messages = [...messages, newMessageObject]
+  const res = await fetch("/api/chat", {
+    method: "POST", 
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      messages
+    })
+  })
+  const responseMessageObject: ChatCompletionRequestMessageRoleEnum = {
+    role: res.role,
+
+  }
+  messages = [
+    ...messages,
+    res
+  ]
+}
+
 
 export default function Home() {
   return (
