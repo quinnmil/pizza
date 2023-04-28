@@ -1,10 +1,8 @@
-import { useState } from 'react'
-import Image from 'next/image'
+import { useState, useEffect } from 'react'
 import { Inter } from 'next/font/google'
 import { ChatCompletionRequestMessage, ChatCompletionRequestMessageRoleEnum } from 'openai'
 
 const inter = Inter({ subsets: ['latin'] })
-
 
 interface ChatProps {
   children: React.ReactNode;
@@ -69,7 +67,6 @@ const Input: React.FC<{ onSubmit: (userMessage: ChatMessage) => void; role: stri
   );
 };
 
-
 export default function Home() {
   const [chat, setChat] = useState<ChatMessage[]>([{
     role: 'assistant', 
@@ -90,7 +87,7 @@ export default function Home() {
     const responseMessage = responseObject.message as ChatCompletionRequestMessage
     return responseMessage
   }
-
+}
 
   const handleNewMessage = async (userMessage: ChatMessage) => {
     // Update the chat state with the user message
