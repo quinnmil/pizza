@@ -96,7 +96,7 @@ export default function Home() {
     // Update the chat state with the user message
     setChat((prevChat) => [...prevChat, userMessage]);
     // Call sendMessage with the user message and wait for the GPT response
-    const gptResponse = await sendChat(chat);
+    const gptResponse = await sendChat([...chat, userMessage]);
     setChat((prevChat) => [...prevChat, gptResponse]);
   }
 
@@ -105,7 +105,6 @@ export default function Home() {
       <div className="flex flex-col flex-grow w-full max-w-xl bg-white shadow-xl rounded-lg overflow-hidden">
         <Chat>
           {chat
-            .slice(1) // skip the initial system message
             .map((msg, index) =>
               msg.role === "assistant" ? (
                 <GPTMessage key={index + 1} content={msg.content} role={msg.role} />
