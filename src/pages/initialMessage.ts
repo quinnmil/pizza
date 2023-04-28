@@ -7,11 +7,11 @@ const content = `
     are sold out. You will try to up-sell when possible. Respond with "What can I get 
     for you"? From there we will have a dialogue.
 `
-// const content = "respond with trendy slang terms"
 
 const initialMessage: ChatCompletionRequestMessage = {
-        role: 'system', 
-        content: content
-    }
+  role: 'system',
+  content: content
+}
 
 export { initialMessage }
+
