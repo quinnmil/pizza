@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Configuration, OpenAIApi } from 'openai';
-import { initialMessage } from '../initialMessage';
+import { initialMessage }  from '../../initialMessage';
 import type { ChatCompletionRequestMessage } from 'openai'
 
 const configuration = new Configuration({
