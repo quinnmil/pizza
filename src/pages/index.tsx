@@ -1,37 +1,10 @@
-import { useState } from 'react'
+import { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import Image from 'next/image'
 import { Inter } from 'next/font/google'
-import { initialMessage } from './initialMessage'
-import { ChatCompletionRequestMessage, ChatCompletionRequestMessageRoleEnum } from 'openai'
+import { ChatCompletionRequestMessage, ChatCompletionRequestMessageRoleEnum, ChatCompletionResponseMessage } from 'openai'
 
 const inter = Inter({ subsets: ['latin'] })
 
-// let messages = [initialMessage]
-
-// const sendChat = async (message: string) => {
-//   const newMessageObject: ChatCompletionRequestMessage = {
-//     role: "user", 
-//     content: message
-//   }
-//   messages = [...messages, newMessageObject]
-//   const res = await fetch("/api/chat", {
-//     method: "POST", 
-//     headers: {
-//       'Content-Type': 'application/json'
-//     },
-//     body: JSON.stringify({
-//       messages
-//     })
-//   })
-//   const responseMessageObject: ChatCompletionRequestMessageRoleEnum = {
-//     role: res.role,
-
-//   }
-//   messages = [
-//     ...messages,
-//     res
-//   ]
-// }
 
 interface ChatProps {
   children: React.ReactNode;
@@ -96,15 +69,48 @@ const Input: React.FC<{ onSubmit: (message: string, role: 'gpt' | 'user') => voi
   );
 };
 
+const sendChat = async (messages: MessageProps[], updateMessages: Dispatch<SetStateAction<MessageProps[]>>) => {
+  const marshalledMessages: ChatCompletionRequestMessage[] = messages.map((msg) => ({
+    role: msg.role == 'gpt' ? 'assistant' : 'user',
+    content: msg.message
+  }))
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      messages: marshalledMessages
+    })
+  })
+  const responseObject = await res.json()
+  console.log(responseObject)
+  const responseMessage = responseObject.message as ChatCompletionRequestMessage
+  const newMessages = [
+    ...messages,
+    {
+      role: responseMessage.role == "assistant" ? "gpt" : "user",
+      message: responseMessage.content
+    } as MessageProps
+  ]
+  updateMessages(newMessages)
+
+}
+
 export default function Home() {
   const [messages, setMessages] = useState<MessageProps[]>([
-    { message: 'Hello, this is a GPT message.', role: 'gpt' },
-    { message: 'Hello, this is a User message.', role: 'user' },
+    { message: 'What can I get for you?', role: 'gpt' },
   ]);
 
   const handleNewMessage = (message: string, role: 'gpt' | 'user') => {
+    console.log("all messages before: ", messages)
     setMessages([...messages, { message, role }]);
+    sendChat([...messages, { message, role }], setMessages);
   };
+
+  useEffect(() => {
+    console.log("all messages after: ", messages)
+  }, [messages]);
 
   return (
     <main className={`flex min-h-screen flex-col flex-grow w-full max-w-full bg-white shadow-xl rounded-lg justify-between p-24 ${inter.className}`}>

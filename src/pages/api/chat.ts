@@ -16,11 +16,7 @@ export default async function handler(
         return res.status(405).json({ error: 'Method not allowed' });
     }
     const { messages } = (req.body)
-    const newMessageObjects: Array<ChatCompletionRequestMessage> = messages.map((msg: string) => ({
-        role: "user", 
-        content: msg
-    }))
-    const messageObjects = [initialMessage, ...newMessageObjects]
+    const messageObjects = [initialMessage, ...messages]
     try {
         const chatGPTResponse = await openai.createChatCompletion({
             model: 'gpt-3.5-turbo',
