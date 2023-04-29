@@ -45,7 +45,7 @@ const GPTMessage: React.FC<ChatMessage> = ({ content, audio }) => {
           {isPlaying ? 'Playing...' : 'Play'}
         </button>
         <div className="bg-gray-400 text-white p-3 rounded-r-lg rounded-bl-lg">
-          <p className="text-sm">{content}</p>
+          <p className="text-base">{content}</p>
         </div>
       </div>
     </div>
@@ -57,7 +57,7 @@ const UserMessage: React.FC<ChatMessage> = ({ content }) => {
     <div className="flex w-full mt-2 space-x-3 max-w-xs ml-auto justify-end">
       <div>
         <div className="bg-blue-600 text-white p-3 rounded-l-lg rounded-br-lg">
-          <p className="text-sm">{content}</p>
+          <p className="text-base">{content}</p>
         </div>
       </div>
     </div>
@@ -77,7 +77,7 @@ const Input: React.FC<{ onSubmit: (userMessage: ChatMessage) => void; role: stri
     <form className="bg-gray-300 p-4" onSubmit={handleSubmit}>
       <div className="flex items-center w-full">
         <input
-          className="flex-grow h-10 rounded-l px-3 text-black text-sm"
+          className="flex-grow h-10 rounded-l px-3 text-black text-base"
           type="text"
           placeholder="Type your message…"
           value={inputValue}
