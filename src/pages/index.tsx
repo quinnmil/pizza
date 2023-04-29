@@ -10,6 +10,7 @@ interface ChatProps {
 export interface ChatMessage {
   content: string;
   role: string;
+  audio?: string;
 }
 
 const Chat: React.FC<ChatProps> = ({ children }) => {
@@ -20,10 +21,29 @@ const Chat: React.FC<ChatProps> = ({ children }) => {
   );
 };
 
-const GPTMessage: React.FC<ChatMessage> = ({ content }) => {
+const GPTMessage: React.FC<ChatMessage> = ({ content, audio }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const handlePlayAudio = () => {
+    if (audio) {
+      const audioObj = new Audio(`data:audio/mpeg;base64,${audio}`);
+      setIsPlaying(true);
+      audioObj.play().then(() => {
+        setIsPlaying(false);
+      });
+    }
+  };
+
   return (
     <div className="flex w-full mt-2 space-x-3 max-w-xs">
-      <div>
+      <div className='flex'>
+        <button
+          className="mr-2 max-h-8 bg-blue-500 text-white px-2 py-1 rounded"
+          onClick={handlePlayAudio}
+          disabled={!audio || isPlaying}
+        >
+          {isPlaying ? 'Playing...' : 'Play'}
+        </button>
         <div className="bg-gray-400 text-white p-3 rounded-r-lg rounded-bl-lg">
           <p className="text-sm">{content}</p>
         </div>
@@ -90,7 +110,7 @@ export default function Home() {
     // Play the received audio
     const audio = new Audio(`data:audio/mpeg;base64,${responseObject.audio}`);
     audio.play();
-    const responseMessage = { content: responseObject.message, role: "assistant" };
+    const responseMessage = { content: responseObject.message, role: "assistant", audio: responseObject.audio };
     return responseMessage
   }
 
@@ -109,7 +129,7 @@ export default function Home() {
           {chat
             .map((msg, index) =>
               msg.role === "assistant" ? (
-                <GPTMessage key={index + 1} content={msg.content} role={msg.role} />
+                <GPTMessage key={index + 1} content={msg.content} role={msg.role} audio={msg.audio} />
               ) : (
                 <UserMessage key={index + 1} content={msg.content} role={msg.role} />
               ),
