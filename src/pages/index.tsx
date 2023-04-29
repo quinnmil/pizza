@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Inter } from 'next/font/google'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -92,18 +92,48 @@ const Input: React.FC<{ onSubmit: (userMessage: ChatMessage) => void; role: stri
 };
 
 export default function Home() {
-  const [chat, setChat] = useState<ChatMessage[]>([{
-    role: 'assistant',
-    content: 'Hello and welcome to Pizza GPT. What can I get for you?'
-  }]);
+  const [chat, setChat] = useState<ChatMessage[]>([]);
+
+  useEffect(() => {
+    const initialMessage = {
+      role: 'assistant',
+      content: 'Hello and welcome to Pizza GPT. What can I get for you?'
+    }
+    const fetchInitialAudio = async () => {
+      const res = await fetch(`/api/getAudio`);
+      const responseObject = await res.json();
+
+      // Play the received audio
+      const audio = new Audio(`data:audio/mpeg;base64,${responseObject.audio}`);
+      audio.play();
+      const responseMessage = { ...initialMessage, audio: responseObject.audio };
+      return responseMessage
+    };
+
+    const setInitialChat = async () => {
+      const gptResponse = await fetchInitialAudio();
+      setChat([gptResponse]);
+    };
+
+    setInitialChat();
+  }, []);
+
   const sendChat = async (messages: ChatMessage[]) => {
-    const res = await fetch("/api/mockchat", {
+    // Strip all audio before sending to backend
+    const strippedMessages = messages.map((message) => {
+      return {
+        content: message.content,
+        role: message.role,
+      };
+    });
+
+    const res = await fetch("/api/chat", {
       method: "POST",
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        messages: messages
+        messages: strippedMessages
       })
     })
     const responseObject = await res.json()
@@ -129,9 +159,9 @@ export default function Home() {
           {chat
             .map((msg, index) =>
               msg.role === "assistant" ? (
-                <GPTMessage key={index + 1} content={msg.content} role={msg.role} audio={msg.audio} />
+                <GPTMessage key={index} content={msg.content} role={msg.role} audio={msg.audio} />
               ) : (
-                <UserMessage key={index + 1} content={msg.content} role={msg.role} />
+                <UserMessage key={index} content={msg.content} role={msg.role} />
               ),
             )}
         </Chat>
