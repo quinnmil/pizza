@@ -87,6 +87,9 @@ export default function Home() {
       })
     })
     const responseObject = await res.json()
+    // Play the received audio
+    const audio = new Audio(`data:audio/mpeg;base64,${responseObject.audio}`);
+    audio.play();
     const responseMessage = { content: responseObject.message, role: "assistant" };
     return responseMessage
   }
