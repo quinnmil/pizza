@@ -1,5 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Configuration, OpenAIApi } from 'openai';
+import { initialMessage }  from '../../initialMessage';
+import type { ChatCompletionRequestMessage } from 'openai'
 
 const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
@@ -13,13 +15,12 @@ export default async function handler(
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
-
-    const { messages } = req.body;
-
+    const { messages } = (req.body)
+    const messageObjects = [initialMessage, ...messages]
     try {
         const chatGPTResponse = await openai.createChatCompletion({
-            model: 'gp-3.5-turbo',
-            messages: messages,
+            model: 'gpt-3.5-turbo',
+            messages: messageObjects,
             max_tokens: 2048,
             n: 1,
             stop: '\n',
@@ -28,7 +29,7 @@ export default async function handler(
 
         console.log(chatGPTMessage)
 
-        res.status(200).json({ message: chatGPTMessage })
+        res.status(200).json({ message: chatGPTMessage?.content })
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Something went wrong' });
