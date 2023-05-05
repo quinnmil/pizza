@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Inter } from 'next/font/google'
 
 const inter = Inter({ subsets: ['latin'] })
-
 interface ChatProps {
   children: React.ReactNode;
 }
@@ -91,32 +90,47 @@ const Input: React.FC<{ onSubmit: (userMessage: ChatMessage) => void; role: stri
   );
 };
 
+const playInitialAudio = async () => {
+  const res = await fetch(`/api/getAudio`);
+  const responseObject = await res.json();
+
+  // Play the received audio
+  const audio = new Audio(`data:audio/mpeg;base64,${responseObject.audio}`);
+  audio.play();
+};
+
 export default function Home() {
   const [chat, setChat] = useState<ChatMessage[]>([]);
+  const [isSpeaking, setIsSpeaking] = useState(true);
 
+  const handleToggleSpeech = () => {
+    setIsSpeaking(!isSpeaking);
+  }
   useEffect(() => {
     const initialMessage = {
       role: 'assistant',
       content: 'Hello and welcome to Pizza GPT. What can I get for you?'
     }
-    const fetchInitialAudio = async () => {
-      const res = await fetch(`/api/getAudio`);
-      const responseObject = await res.json();
 
-      // Play the received audio
-      const audio = new Audio(`data:audio/mpeg;base64,${responseObject.audio}`);
-      audio.play();
-      const responseMessage = { ...initialMessage, audio: responseObject.audio };
-      return responseMessage
-    };
-
-    const setInitialChat = async () => {
-      const gptResponse = await fetchInitialAudio();
-      setChat([gptResponse]);
-    };
-
-    setInitialChat();
+    setChat([initialMessage]);
+    if (isSpeaking) {
+      playInitialAudio()
+    }
   }, []);
+
+  const getSpeech = async (text: string): Promise<string> => {
+    const res = await fetch("/api/speech", {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        text
+      })
+    })
+    const resObject = await res.json()
+    return resObject.audio
+  }
 
   const sendChat = async (messages: ChatMessage[]) => {
     // Strip all audio before sending to backend
@@ -137,13 +151,21 @@ export default function Home() {
       })
     })
     const responseObject = await res.json()
-    // Play the received audio
-    const audio = new Audio(`data:audio/mpeg;base64,${responseObject.audio}`);
-    audio.play();
-    const responseMessage = { content: responseObject.message, role: "assistant", audio: responseObject.audio };
-    return responseMessage
-  }
 
+    const audio = isSpeaking ? await getSpeech(responseObject.message) : '';
+    console.log("IS SPEAKING: ", isSpeaking)
+    // Play the received audio
+    if (isSpeaking && audio) {
+      const audioFile = new Audio(`data:audio/mpeg;base64,${audio}`);
+      audioFile.play();
+    }
+    return {
+      content: responseObject.message,
+      role: "assistant",
+      audio
+    };
+  };
+  
   const handleNewMessage = async (userMessage: ChatMessage) => {
     // Update the chat state with the user message
     setChat((prevChat) => [...prevChat, userMessage]);
@@ -152,23 +174,27 @@ export default function Home() {
     setChat((prevChat) => [...prevChat, gptResponse]);
   }
 
-  return (
-    <main className={`flex flex-col items-center justify-center w-full min-h-screen bg-gray-100 text-gray-800 p-0 md:p-8 ${inter.className}`}>
-      <div className="flex flex-col flex-grow w-full max-w-xl bg-white shadow-xl rounded-lg overflow-hidden">
-        <Chat>
-          {chat
-            .map((msg, index) =>
-              msg.role === "assistant" ? (
-                <GPTMessage key={index} content={msg.content} role={msg.role} audio={msg.audio} />
-              ) : (
-                <UserMessage key={index} content={msg.content} role={msg.role} />
-              ),
-            )}
-        </Chat>
-
-        <Input onSubmit={handleNewMessage} role="user" />
+return (
+  <main className={`flex flex-col items-center justify-center w-full min-h-screen bg-gray-100 text-gray-800 p-0 md:p-8 ${inter.className}`}>
+    <Chat>
+      {chat
+        .map((msg, index) =>
+          msg.role === "assistant" ? (
+            <GPTMessage key={index} content={msg.content} role={msg.role} audio={msg.audio} />
+          ) : (
+            <UserMessage key={index} content={msg.content} role={msg.role} />
+          ),
+        )}
+    </Chat>
+    <label className="relative inset-x-0 bottom-3 inline-flex items-center cursor-pointer">
+      <input type="checkbox" value="" className="sr-only peer" checked={isSpeaking} onChange={handleToggleSpeech} />
+      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600">
       </div>
-    </main>
-  );
+      <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">Speech</span>
+    </label>
+    <Input onSubmit={handleNewMessage} role="user" />
+
+  </main>
+);
 }
 
